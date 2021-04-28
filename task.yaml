@@ -1,0 +1,62 @@
+---
+  -
+    hosts: worker
+
+    tasks:
+      - name: Install EPel release 
+        yum:
+          name: epel-release
+          update_cache: yes
+          state: latest #absent present
+      
+      - name: Install http server 
+        yum:
+          name: httpd
+          update_cache: yes
+          state: latest #absent present
+      - name: Install http server 
+        yum:
+          name: tree
+          update_cache: yes
+          state: latest #absent present
+        
+      - name: start and enable services
+        service:
+          name: httpd
+          enabled: true
+          state: started
+        notify: apache_started  
+      - name: install latest package of firewalld
+        yum:
+          name: firewalld
+          state: latest
+      - name: start and enable firewalld
+        service:
+          name: firewalld
+          enabled: true
+          state: started
+      - name: permit http service 
+        firewalld:
+          service: http
+          permanent: true
+          state: enabled
+          immediate: yes
+      - name: create simple html web page 
+        copy:
+          content: "Welcome to Ansible Learning course \n"
+          dest: /var/www/html/index.html
+      - name: defining web server name
+        lineinfile:
+          path: /etc/httpd/conf/httpd.conf
+          line: ServerName www.client1.example.com:80
+          insertafter: "#ServerName"
+      - name: defining web server name
+        lineinfile:
+          path: /etc/hosts
+          line: 192.168.43.19 www.client1.example.com
+    handlers:
+        - name: apache_started
+          service:
+            name: httpd
+            state: started
+          
